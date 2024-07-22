@@ -6,11 +6,16 @@
 //
 
 import UIKit
+import YumemiWeather
 
 class ViewController: UIViewController {
+    // 画像を設定
+    let sunnyImage = UIImage(named: "sunny.jpg")
+    let rainyImage = UIImage(named: "rainy.jpg")
+    let cloudyImage = UIImage(named: "cloudy.jpg")
+    
     private lazy var imageView: UIImageView = {
         let image = UIImageView()
-        image.backgroundColor = UIColor.green
         image.translatesAutoresizingMaskIntoConstraints = false
         return image
     }()
@@ -49,15 +54,36 @@ class ViewController: UIViewController {
         return button
     }()
     
+    // ボタンが押された時に呼ばれるメソッド
+    @objc func buttonEvent(_ sender: UIButton) {
+        // 天気を取得してコンソールに出力する
+        let weather = YumemiWeather.fetchWeatherCondition()
+        if weather == "sunny" {
+            imageView.image = sunnyImage
+        }else if weather == "rainy" {
+            imageView.image = rainyImage
+        } else {
+            imageView.image = cloudyImage
+        }
+        
+        print(weather)
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        // デバッグ 画像のロード確認
+        print(sunnyImage != nil ? "Sunny image loaded" : "Sunny image not found")
+        print(rainyImage != nil ? "Rainy image loaded" : "Rainy image not found")
+        print(cloudyImage != nil ? "Cloudy image loaded" : "Cloudy image not found")
  
         self.view.addSubview(imageView)
         self.view.addSubview(redLabel)
         self.view.addSubview(blueLabel)
         self.view.addSubview(rightButton)
         self.view.addSubview(leftButton)
+        
+        rightButton.addTarget(self, action: #selector(buttonEvent(_:)), for: .touchUpInside)
         
         NSLayoutConstraint.activate([
             imageView.widthAnchor.constraint(equalTo: self.view.widthAnchor, multiplier: 0.5),
@@ -82,9 +108,8 @@ class ViewController: UIViewController {
             rightButton.centerXAnchor.constraint(equalTo: redLabel.centerXAnchor)
         ])
 
-        
-        
     }
+
     
     
 
