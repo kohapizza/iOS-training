@@ -54,28 +54,54 @@ class ViewController: UIViewController {
         return button
     }()
     
+    private lazy var alert = UIAlertController(
+        title: "天気取得に失敗しました",
+        message: "もう一度お試しください",
+        preferredStyle: UIAlertController.Style.alert)
+    
+    
+    
     // ボタンが押された時に呼ばれるメソッド
     @objc func buttonEvent(_ sender: UIButton) {
         // 天気を取得してコンソールに出力する
-        let weather = YumemiWeather.fetchWeatherCondition()
-        if weather == "sunny" {
-            imageView.image = sunnyImage
-        }else if weather == "rainy" {
-            imageView.image = rainyImage
-        } else {
-            imageView.image = cloudyImage
-        }
+        // simple ver.
+        // let weather = YumemiWeather.fetchWeatherCondition()
         
-        print(weather)
+        // Throws ver
+        // エラーをもつ関数を実行するには、try を使う
+        do {
+            let weather = try YumemiWeather.fetchWeatherCondition(at: "tokyo")
+            
+            if weather == "sunny" {
+                imageView.image = sunnyImage
+            }else if weather == "rainy" {
+                imageView.image = rainyImage
+            } else {
+                imageView.image = cloudyImage
+            }
+            
+            print(weather)
+        } catch{
+            present(alert, animated: true, completion: nil)
+            
+            print(error)
+        }
     }
+    
+    
+    
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        // アラート
+        alert.addAction(UIAlertAction(title: "トップ画面に戻る", style: .default, handler: nil))
+        
         // デバッグ 画像のロード確認
-        print(sunnyImage != nil ? "Sunny image loaded" : "Sunny image not found")
-        print(rainyImage != nil ? "Rainy image loaded" : "Rainy image not found")
-        print(cloudyImage != nil ? "Cloudy image loaded" : "Cloudy image not found")
+        // print(sunnyImage != nil ? "Sunny image loaded" : "Sunny image not found")
+        // print(rainyImage != nil ? "Rainy image loaded" : "Rainy image not found")
+        // print(cloudyImage != nil ? "Cloudy image loaded" : "Cloudy image not found")
  
         self.view.addSubview(imageView)
         self.view.addSubview(redLabel)
