@@ -14,6 +14,14 @@ class ViewController: UIViewController {
     let rainyImage = UIImage(named: "rainy.jpg")
     let cloudyImage = UIImage(named: "cloudy.jpg")
     
+    // JSON 入力文
+    let jsonInput = """
+{
+    "area": "Tokyo",
+    "date": "2020-04-01T12:00:00+09:00"
+}
+"""
+    
     private lazy var imageView: UIImageView = {
         let image = UIImageView()
         image.translatesAutoresizingMaskIntoConstraints = false
@@ -65,22 +73,49 @@ class ViewController: UIViewController {
     @objc func buttonEvent(_ sender: UIButton) {
         // 天気を取得してコンソールに出力する
         // simple ver.
-        // let weather = YumemiWeather.fetchWeatherCondition()
+//         let weather = YumemiWeather.fetchWeatherCondition()
         
         // Throws ver
         // エラーをもつ関数を実行するには、try を使う
+        
         do {
-            let weather = try YumemiWeather.fetchWeatherCondition(at: "tokyo")
+            let weatherJSON = try YumemiWeather.fetchWeather(jsonInput)
+            print(weatherJSON)
             
-            if weather == "sunny" {
-                imageView.image = sunnyImage
-            }else if weather == "rainy" {
-                imageView.image = rainyImage
-            } else {
-                imageView.image = cloudyImage
+//             let weather = try YumemiWeather.fetchWeatherCondition(at: "tokyo")
+            
+            if let data = weatherJSON.data(using: .utf8){
+                if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                    
+                    if let weatherCondition = json["weather_condition"] as? String {
+                        switch weatherCondition {
+                        case "sunny":
+                            imageView.image = sunnyImage
+                        case "rainy":
+                            imageView.image = rainyImage
+                        case "cloudy":
+                            imageView.image = cloudyImage
+                        default:
+                            imageView.image = nil
+                        }
+                        print("天気: \(weatherCondition)")
+                    }
+                    
+                    if let maxTemperature = json["max_temperature"] as? Int {
+                        redLabel.text = String(maxTemperature)
+                    }
+                    
+                    if let minTemperature = json["min_temperature"] as? Int {
+                        blueLabel.text = String(minTemperature)
+                    }
+                }
             }
             
-            print(weather)
+            
+            
+
+            
+            
         } catch{
             present(alert, animated: true, completion: nil)
             
