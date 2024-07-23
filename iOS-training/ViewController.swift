@@ -7,6 +7,7 @@
 
 import UIKit
 import YumemiWeather
+import Foundation
 
 class ViewController: UIViewController {
     // 画像を設定
@@ -21,6 +22,8 @@ class ViewController: UIViewController {
     "date": "2020-04-01T12:00:00+09:00"
 }
 """
+    
+    
     
     private lazy var imageView: UIImageView = {
         let image = UIImageView()
@@ -80,45 +83,49 @@ class ViewController: UIViewController {
         
         do {
             let weatherJSON = try YumemiWeather.fetchWeather(jsonInput)
-            print(weatherJSON)
             
 //             let weather = try YumemiWeather.fetchWeatherCondition(at: "tokyo")
             
+            // JSON文字列をDarta型にする
             if let data = weatherJSON.data(using: .utf8){
-                if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
-                    
-                    if let weatherCondition = json["weather_condition"] as? String {
-                        switch weatherCondition {
-                        case "sunny":
-                            imageView.image = sunnyImage
-                        case "rainy":
-                            imageView.image = rainyImage
-                        case "cloudy":
-                            imageView.image = cloudyImage
-                        default:
-                            imageView.image = nil
-                        }
-                        print("天気: \(weatherCondition)")
-                    }
-                    
-                    if let maxTemperature = json["max_temperature"] as? Int {
-                        redLabel.text = String(maxTemperature)
-                    }
-                    
-                    if let minTemperature = json["min_temperature"] as? Int {
-                        blueLabel.text = String(minTemperature)
-                    }
+                // JSONEncoder クラスのインスタンスを生成
+                let decoder = JSONDecoder()
+                
+                // Weather型を定義 Countableプロトコルに準拠させる
+                struct Weather: Codable{
+                    var min_temperature: Int
+                    var weather_condition: String
+                    var date: String
+                    var max_temperature: Int
                 }
+                
+                // デコードする
+                let decoded = try decoder.decode(Weather.self, from: data)
+                
+                let weatherCondition = decoded.weather_condition
+                switch weatherCondition {
+                case "sunny":
+                    imageView.image = sunnyImage
+                case "rainy":
+                    imageView.image = rainyImage
+                case "cloudy":
+                    imageView.image = cloudyImage
+                default:
+                    imageView.image = nil
+                }
+                print("天気: \(weatherCondition)")
+                
+                    
+                let maxTemperature = decoded.max_temperature
+                redLabel.text = String(maxTemperature)
+                
+                    
+                let minTemperature = decoded.min_temperature
+                blueLabel.text = String(minTemperature)
+                
             }
-            
-            
-            
-
-            
-            
         } catch{
             present(alert, animated: true, completion: nil)
-            
             print(error)
         }
     }
